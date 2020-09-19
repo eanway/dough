@@ -19,6 +19,11 @@ p_load(
   lubridate
 )
 
+initialize_date <- function(start_date, time) {
+  date_time <- ymd_hms(time)
+  start_date + hours(hour(date_time)) + minutes(minute(date_time))
+}
+
 shift_day <- function(early_hour, late_hour) {
   as_datetime(ifelse(late_hour < early_hour & !is.na(early_hour), late_hour + days(1), late_hour))
 }
@@ -47,8 +52,12 @@ df_dough_standard <- df_dough %>%
     !is.na(day)
   ) %>%
   mutate(
-    across(ends_with("hour|finish"), ymd_hms), 
-    mill_date = as.Date(as.integer(mill_date), origin = "1899-12-30"), 
+    mill_date = as.Date(as.integer(mill_date), origin = "1899-12-30")
+  ) %>%
+  mutate(
+    across(ends_with(c("hour", "finish")), ~initialize_date(day, .))
+  ) %>%
+  mutate(
     bulk_hour = shift_day(auto_hour, bulk_hour), 
     bench_hour = shift_day(bulk_hour, bench_hour), 
     proof_hour = shift_day(bench_hour, proof_hour), 
@@ -58,4 +67,11 @@ df_dough_standard <- df_dough %>%
 
 
 # Analyze ####
-
+df_dough_analysis <- df_dough_standard %>%
+  mutate(
+    auto_duration = difftime(bulk_hour, auto_hour, units = "mins"), 
+    bulk_duration = difftime(bench_hour, bulk_hour, units = "mins"), 
+    bench_duration = difftime(proof_hour, bench_hour, units = "mins"), 
+    proof_duration = difftime(bake_hour, proof_hour, units = "mins"), 
+    bake_duration = difftime(bake_finish, bake_hour, units = "mins")
+  )
