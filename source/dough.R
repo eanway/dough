@@ -28,6 +28,17 @@ shift_day <- function(early_hour, late_hour) {
   as_datetime(ifelse(late_hour < early_hour & !is.na(early_hour), late_hour + days(1), late_hour))
 }
 
+standardize_rating <- function(rating, min, max) {
+  rating_int <- rating %>%
+    recode(
+      "yes" = as.character(max), 
+      "no" = as.character(min)
+    ) %>%
+    as.integer()
+  
+  (rating_int - min) / (10 - min)
+}
+
 df_dough_standard <- df_dough %>%
   clean_names() %>%
   select(
@@ -51,6 +62,7 @@ df_dough_standard <- df_dough %>%
   filter(
     !is.na(day)
   ) %>%
+  # standardize dates
   mutate(
     mill_date = as.Date(as.integer(mill_date), origin = "1899-12-30")
   ) %>%
@@ -63,11 +75,16 @@ df_dough_standard <- df_dough %>%
     proof_hour = shift_day(bench_hour, proof_hour), 
     bake_hour = shift_day(proof_hour, bake_hour), 
     bake_finish = shift_day(bake_hour, bake_finish)
+  ) %>%
+  # standardize ratings
+  mutate(
+    rating_new = standardize_rating(rating, 0, 10)
   )
 
 
 # Analyze ####
 df_dough_analysis <- df_dough_standard %>%
+  # not including fermentation duration because it's the sum of bulk, bench, and proof
   mutate(
     auto_duration = difftime(bulk_hour, auto_hour, units = "mins"), 
     bulk_duration = difftime(bench_hour, bulk_hour, units = "mins"), 
