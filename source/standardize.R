@@ -10,7 +10,7 @@ p_load(
   here
 )
 
-df_dough <- read_excel(here::here("working", "data", "dough.xlsx"))
+df_dough <- read_excel(here::here("working", "data", "dough_eca.xlsx"))
 
 # Standardize ####
 p_load(
@@ -84,13 +84,13 @@ df_dough_rating <- df_dough_dates %>%
 
 # Analyze ####
 df_dough_duration <- df_dough_rating %>%
-  # not including fermentation duration because it's the sum of bulk, bench, and proof
   mutate(
     auto_duration_mins = difftime(bulk_hour, auto_hour, units = "mins"), 
     bulk_duration_mins = difftime(bench_hour, bulk_hour, units = "mins"), 
     bench_duration_mins = difftime(proof_hour, bench_hour, units = "mins"), 
     proof_duration_mins = difftime(bake_hour, proof_hour, units = "mins"), 
-    bake_duration_mins = difftime(bake_finish, bake_hour, units = "mins")
+    bake_duration_mins = difftime(bake_finish, bake_hour, units = "mins"), 
+    fermentation_duration_mins = bulk_duration_mins + bench_duration_mins + proof_duration_mins
   ) %>%
   mutate(
     flour_age_days = difftime(day, mill_date, units = "days"), 
