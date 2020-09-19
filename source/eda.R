@@ -25,6 +25,11 @@ df_dough_complete <- df_dough %>%
     !is.na(rating)
   )
 
+# df_dough_full <- df_dough_complete %>%
+#   select(
+#     where(~!anyNA(.))
+#   )
+
 # Plot ####
 p_load(
   ggplot2
@@ -92,3 +97,29 @@ pca_res %>%
 kmeans_res <- kmeans(df_dough_pca, 2)
 
 autoplot(kmeans_res, data = df_dough_pca, size = "rating")
+
+
+# Bench time per loaf ####
+ggplot(df_dough_inliers, aes(x = units, y = bench_duration_mins)) + 
+  geom_point(aes(size = bench_time_per_loaf))
+
+ggplot(df_dough_inliers, aes(x = units, y = bench_time_per_loaf)) + 
+  geom_point(aes(size = rating))
+
+plot_v_rating <- function(df, x_var) {
+  ggplot(df, aes(x = {{x_var}}, y = rating)) + 
+    geom_point() + 
+    geom_smooth()
+}
+
+plot_v_rating(df_dough_inliers, hydration)
+
+plot_v_rating(df_dough_inliers, units)
+
+plot_v_rating(df_dough_inliers, auto_duration_mins)
+
+plot_v_rating(df_dough_inliers, bench_duration_mins)
+
+plot_v_rating(df_dough_inliers, bench_time_per_loaf)
+
+plot_v_rating(df_dough_inliers, bake_duration_mins)
