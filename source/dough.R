@@ -19,6 +19,10 @@ p_load(
   lubridate
 )
 
+shift_day <- function(early_hour, late_hour) {
+  as_datetime(ifelse(late_hour < early_hour & !is.na(early_hour), late_hour + days(1), late_hour))
+}
+
 df_dough_standard <- df_dough %>%
   clean_names() %>%
   select(
@@ -44,16 +48,14 @@ df_dough_standard <- df_dough %>%
   ) %>%
   mutate(
     across(ends_with("hour|finish"), ymd_hms), 
-    mill_date = as.Date(as.integer(mill_date), origin = "1899-12-30")
+    mill_date = as.Date(as.integer(mill_date), origin = "1899-12-30"), 
+    bulk_hour = shift_day(auto_hour, bulk_hour), 
+    bench_hour = shift_day(bulk_hour, bench_hour), 
+    proof_hour = shift_day(bench_hour, proof_hour), 
+    bake_hour = shift_day(proof_hour, bake_hour), 
+    bake_finish = shift_day(bake_hour, bake_finish)
   )
 
 
 # Analyze ####
-shift_day <- function(early_hour, late_hour) {
-  as_datetime(ifelse(late_hour < early_hour & !is.na(early_hour), late_hour + days(1), late_hour))
-}
 
-df_dough_analysis <- df_dough_standard %>%
-  mutate(
-    bulk_hour = shift_day(auto_hour, bulk_hour)
-  )
