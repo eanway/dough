@@ -75,7 +75,7 @@ df_dough_dates <- df_dough_thin %>%
     bake_finish = shift_day(bake_hour, bake_finish)
   )
 
-# standardize ratings ####
+# Standardize ratings ####
 df_dough_rating <- df_dough_dates %>%
   mutate(
     rating = standardize_rating(rating, 0, 10)
@@ -93,12 +93,14 @@ df_dough_duration <- df_dough_rating %>%
     bake_duration_mins = difftime(bake_finish, bake_hour, units = "mins")
   ) %>%
   mutate(
-    flour_age_days = difftime(day, mill_date, units = "days")
+    flour_age_days = difftime(day, mill_date, units = "days"), 
+    bench_time_per_loaf = bench_duration_mins / units
   ) %>%
   select(
     all_of(vec_core), 
     ends_with("duration_mins"), 
-    flour_age_days
+    flour_age_days, 
+    bench_time_per_loaf
   )
 
 
@@ -108,7 +110,7 @@ df_dough_standard <- df_dough_duration %>%
     across(c("batch_number"), as.factor), 
     across(
       c("final_dough_temperature", "room_temperature", 
-        "humidity", "hydration", "leaven_percentage"), 
+        "humidity", "hydration", "leaven_percentage", "bench_time_per_loaf"), 
       as.numeric
     ), 
     across(c(where(is.difftime), "units", "rating"), as.integer)
